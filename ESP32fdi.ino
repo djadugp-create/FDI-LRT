@@ -46,7 +46,7 @@ int textXPosition = PANEL_RES_X * CHAIN_PANEL;    // Number of pixels wide of ea
 // Will start one pixel off screen
 int textYPosition = ((PANEL_RES_Y - textSize * 8) / 2); // This will center the text
 
-String text ="PT. KERETA API (PERSERO)";
+String text ="PT. KERETA API INDONESIA (PERSERO)";
 
 // For scrolling Text
 unsigned long isAnimationDue;
@@ -129,7 +129,7 @@ void setup()
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
 
   // let's adjust default brightness to about 75%
-  dma_display->setBrightness8(40);    // range is 0-255, 0 - 0%, 255 - 100%
+  dma_display->setBrightness8(80);    // range is 0-255, 0 - 0%, 255 - 100%
 
   // Allocate memory and start DMA display
   if ( not dma_display->begin() )
@@ -254,46 +254,38 @@ void readSerial2() {
 }
 
 void parseMessage(const String& message) {
-    int firstComma = message.indexOf(',');
-    int secondComma = message.indexOf(',', firstComma + 1);
-    int thirdComma = message.indexOf(',', secondComma + 1);
-    int fourthComma = message.indexOf(',', thirdComma + 1);
-    int lastAsterisk = message.indexOf('*', fourthComma + 1);
 
-    if (firstComma == -1 || secondComma == -1 || thirdComma == -1 || fourthComma == -1 || lastAsterisk == -1) {
-        //Serial.println("Invalid message format.");
+    if (!message.startsWith("$") || !message.endsWith("*")) {
         return;
     }
 
-    String command = message.substring(0, firstComma);
-    int type = message.substring(firstComma + 1, secondComma).toInt();
-    int param1 = message.substring(secondComma + 1, thirdComma).toInt();
-    int param2 = message.substring(thirdComma + 1, fourthComma).toInt();
-    String receivedText = message.substring(fourthComma + 2, lastAsterisk - 1);
+    String receivedText = message.substring(1, message.length() - 1);
 
-    if (command == "$RTEXT") {
-        currentFontType = (type == 2) ? SMALL : LARGE;
-        currentColor = getColorFromParam(param1);
-        currentAnimationType = static_cast<AnimationType>(param2);
-        text = receivedText;
-        
+    currentFontType = LARGE;          // otomatis font besar
+    currentColor = myRED;             // otomatis merah
+    currentAnimationType = SCROLL_LEFT; // otomatis scroll kiri
 
-         // Handle the special case for static text with newline character
-        if (currentAnimationType == STATIC) {
-            text.replace("\\n", "\n");
-        }
-        
-        // Set font size
-        FourScanPanel->setTextSize((currentFontType == LARGE) ? 1 : 2);
-        
-        // Update text dimensions
-        FourScanPanel->getTextBounds(text, 0, 0, &xOne, &yOne, &w, &h);
-        textXPosition = (currentAnimationType == SCROLL_LEFT) ? FourScanPanel->width() : 0;
-        textYPosition = (currentAnimationType == SCROLL_UP) ? FourScanPanel->height() : 0;
-        
-        
-        newMessageAvailable = true;
-    } else {
+    text = receivedText;
+
+    FourScanPanel->setTextSize(1);
+    FourScanPanel->setTextColor(currentColor);
+
+    FourScanPanel->getTextBounds(
+        text,
+        0,
+        0,
+        &xOne,
+        &yOne,
+        &w,
+        &h
+    );
+
+    textXPosition = FourScanPanel->width();
+    textYPosition = (FourScanPanel->height() - h) / 2;
+
+    newMessageAvailable = true;
+    }
+     else {
         // Serial.println("Command not recognized.");
     }
 }
