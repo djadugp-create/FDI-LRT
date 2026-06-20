@@ -2,8 +2,7 @@
 //
 // for LRT and DMU 
 // INKA-RESPATI
-//  
-//  by jum (3Sep2024)
+//
 //  by Edes (5June2019)
 //
 // udp port = 1337
@@ -20,7 +19,7 @@
 #define SS_ETH 10
 #define UDP_PORT 42
 
-static byte default_IP[12]={192,168,1,41 , 192,168,1,1 , 255,255,0,0};
+static byte default_IP[12]={192,168,28,42 , 192,168,28,1 , 255,255,0,0};
 static byte MYdns[4]={8,8,8,8};
 
 byte EEip[4],EEgw[4],EEnm[4];
@@ -38,7 +37,7 @@ byte Ethernet::buffer[500]; // tcp/ip send and receive buffer
 //callback that prints received packets to the serial port
 
 void setup(){
-  Serial.begin(9600);
+  Serial.begin(38400);
   
   wdt_disable();
   wdt_enable(WDTO_8S);
@@ -55,56 +54,21 @@ void setup(){
   millis_30s = millis();
 }
 
-void loop() {
+void loop(){
   ether.packetLoop(ether.packetReceive());
 
-  if (millis() >= millis_5s + 5000) {
+  if (millis() >= millis_5s + 5000 ){
     millis_5s = millis();
     Serial.print(F("."));
     new_udp_data = false;
     wdt_reset();
   }
-
-  if (millis() >= millis_30s + 30000) {
+  if (millis() >= millis_30s + 30000 ){
     millis_30s = millis();
-    
-    if (!new_udp_data) {
-      if (last_received_udp.length() == 0) {
-        // No previous message, send default message
-        Serial.println();
-        Serial.println(F("$RTEXT,2,1,6,\"PT KERETA API INDONESIA (PERSERO)\"*"));
-      } else {
-        // Print the last received UDP message if it exists
-        Serial.println();
-        Serial.println(last_received_udp);
-      }
+    if (!new_udp_data){
+      Serial.print(last_received_udp);
     }
   }
-}
-
-bool isBroadcastAddress(byte *ip)
-{
-  // Global broadcast
-  if (ip[0] == 255 &&
-      ip[1] == 255 &&
-      ip[2] == 255 &&
-      ip[3] == 255)
-  {
-    return true;
-  }
-
-  // Directed broadcast berdasarkan netmask device
-  for (int i = 0; i < 4; i++)
-  {
-    byte bc =
-      (ether.myip[i] & ether.netmask[i]) |
-      (~ether.netmask[i]);
-
-    if (ip[i] != bc)
-      return false;
-  }
-
-  return true;
 }
 
 int parsing_update (String StringToParse){
@@ -147,14 +111,10 @@ int parsing_update (String StringToParse){
         break;
     }
 
-    bool ip_match =
-    (NEW_value[0] == ether.myip[0]) &&
-    (NEW_value[1] == ether.myip[1]) &&
-    (NEW_value[2] == ether.myip[2]) &&
-    (NEW_value[3] == ether.myip[3]);
-
-    if (ip_match || isBroadcastAddress(NEW_value))
-  {
+    if ((NEW_value[0]==ether.myip[0])
+        &&(NEW_value[1]==ether.myip[1])
+        &&(NEW_value[2]==ether.myip[2])
+        &&(NEW_value[3]==ether.myip[3])){
     StringToParse = NEW_ip;
     int i=0;
     NEW_ip = "";
@@ -255,51 +215,36 @@ void delay_wdt(int milisecond){
   delay(milisecond);
 }
 
-void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_port, char *data, uint16_t len) {
-  IPAddress src(src_ip[0], src_ip[1], src_ip[2], src_ip[3]);
+void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_port, char *data, uint16_t len){
+  IPAddress src(src_ip[0],src_ip[1],src_ip[2],src_ip[3]);
   wdt_reset();
-  new_udp_data = true;
-  //Serial.println(data);
+  new_udp_data=true;
+  Serial.println(data);
 
-  String string_udp = "";
-  for (int i = 0; i < len; i++) {
-    string_udp += data[i];
+  String string_udp="";
+  for(int i=0;i<len;i++) string_udp += data[i];
+  last_received_udp = string_udp;
+  int hasil = parsing_update(string_udp);
+  
+  if (data[0]=='$') {
+    Serial.println(F("text:"));
   }
-
-  // Check for specific format
-  if (string_udp.startsWith("$RTEXT,0,4009,112,\"") && string_udp.endsWith("\"*")) {
-    int startIdx = string_udp.indexOf("\"") + 1;  // Find the first double quote
-    int endIdx = string_udp.lastIndexOf("\"");  // Find the last double quote
-
-    if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
-      String content = string_udp.substring(startIdx, endIdx);  // Extract the content between quotes
-      
-      // Only process if the content is different from the last received content
-      if (content != last_received_udp) {
-        last_received_udp = "$RTEXT,2,1,6,\""+content+"\"*";  // Update the last received content
-        Serial.println("$RTEXT,2,1,6,\""+content+"\"*");  // Print the extracted content
-        // Further processing can be done with 'content'
-      }
-    }
-  } 
-  else if (data[0] == '>') {
+  else if (data[0]=='>') {
     Serial.print(F("command:"));
-    int hasil = parsing_update(string_udp);
 
-    if (hasil == 1) {
+    if (hasil==1){
       Serial.println(F("$Change IP & wait Reset*"));
       save_ip_to_eeprom();
       reset_wdt();
-    } 
-    else if (hasil == 2) {
+    }
+    else if (hasil==2){
       display_setting();
     }
   }
 }
 
-
 void display_setting(){
-  String setting_string="$RTEXT,2,1,0, IP:";
+  String setting_string="$IP:";
   for (int i=0;i<4;i++){
     setting_string+=ether.myip[i];
     if(i<3)setting_string+=".";
