@@ -285,10 +285,7 @@ void parseMessage(const String& message) {
 
     newMessageAvailable = true;
     }
-     else {
-        // Serial.println("Command not recognized.");
-    }
-}
+
 
 
 void scrollTextLeft() {
