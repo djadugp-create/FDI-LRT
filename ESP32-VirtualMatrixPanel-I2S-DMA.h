@@ -436,16 +436,17 @@ inline VirtualCoords EightPxBasePanel ::getCoords(int16_t x, int16_t y) {
   }
 
 uint8_t pxbase =8;   // pixel base
-if ((virt_y & 4) == 0)
-        {
-            coords.x += ((coords.x / pxbase) + 1) * pxbase; // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+ if ((coords.y & 4) == 0)
+       {
+            coords.x = (coords.x / pxbase)*2*pxbase   + 7 - (coords.x & 0x7); // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
         }
         else
         {
-            coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+           coords.x += ((coords.x / pxbase) + 1) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
         }
 
- coords.y = (virt_y >> 3) * 4 + (virt_y & 0b00000011);
+
+  coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
   return coords;
 }
 
