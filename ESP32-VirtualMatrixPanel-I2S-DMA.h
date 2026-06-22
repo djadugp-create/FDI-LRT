@@ -370,7 +370,7 @@ inline VirtualCoords VirtualMatrixPanel::getCoords(int16_t virt_x, int16_t virt_
      *        there's only 2 x RGB pins... and convert this to 1/4 or something
      */	
 	
-    if ((panel_scan_rate == FOUR_SCAN_32PX_HIGH) || (panel_scan_rate == FOUR_SCAN_64PX_HIGH))
+ if ((panel_scan_rate == FOUR_SCAN_32PX_HIGH) || (panel_scan_rate == FOUR_SCAN_64PX_HIGH))
     {
 
 	if (panel_scan_rate == FOUR_SCAN_64PX_HIGH)
@@ -379,15 +379,6 @@ inline VirtualCoords VirtualMatrixPanel::getCoords(int16_t virt_x, int16_t virt_
 	    if ((virt_y & 8) != ((virt_y & 16) >> 1)) { virt_y = (virt_y & 0b11000) ^ 0b11000 + (virt_y & 0b11100111); }
 	}
 
-
-        /* Convert Real World 'VirtualMatrixPanel' co-ordinates (i.e. Real World pixel you're looking at
-           on the panel or chain of panels, per the chaining configuration) to a 1/8 panels
-           double 'stretched' and 'squished' coordinates which is what needs to be sent from the
-           DMA buffer.
-
-           Note: Look at the FourScanPanel example code and you'll see that the DMA buffer is setup
-           as if the panel is 2 * W and 0.5 * H !
-        */
 
         if ((virt_y & 8) == 0)
         {
@@ -398,9 +389,6 @@ inline VirtualCoords VirtualMatrixPanel::getCoords(int16_t virt_x, int16_t virt_
             coords.x += (coords.x / panelResX) * panelResX; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
         }
 
-        // http://cpp.sh/4ak5u
-        // Real number of DMA y rows is half reality
-        // coords.y = (y / 16)*8 + (y & 0b00000111);
         coords.y = (virt_y >> 4) * 8 + (virt_y & 0b00000111);
     }
     else if (panel_scan_rate == FOUR_SCAN_16PX_HIGH)
