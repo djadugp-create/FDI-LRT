@@ -154,6 +154,7 @@ void setup()
   // FOUR_SCAN_16PX_HIGH
   // FOUR_SCAN_32PX_HIGH
 // **** You don't need to set PhysicalPanelScanRate when use your own virtual panel class
+  FourScanPanel->setPhysicalPanelScanRate(FOUR_SCAN_16PX_HIGH);
   FourScanPanel->fillScreen(myBLACK);
   FourScanPanel->setTextSize(1);
   FourScanPanel->setTextWrap(false);
