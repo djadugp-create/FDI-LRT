@@ -15,14 +15,12 @@
 #include "ESP32-VirtualMatrixPanel-I2S-DMA.h"
 
 /* ================================================== */
-// Panel configuration
-#define PANEL_RES_X 32 // Number of pixels wide of each INDIVIDUAL panel module. 
-#define PANEL_RES_Y 16 // Number of pixels tall of each INDIVIDUAL panel module.
-
-
-#define NUM_ROWS 1 // Number of rows of chained INDIVIDUAL PANELS
-#define NUM_COLS 3 // Number of INDIVIDUAL PANELS per ROW
-#define CHAIN_PANEL NUM_ROWS*NUM_COLS
+ // Panel configuration
+  #define PANEL_RES_X 32 // Number of pixels wide of each INDIVIDUAL panel module. 
+  #define PANEL_RES_Y 16 // Number of pixels tall of each INDIVIDUAL panel module.
+  
+  #define NUM_ROWS 1 // Number of rows of chained INDIVIDUAL PANELS
+  #define NUM_COLS 1 // Number of INDIVIDUAL PANELS per ROW
 
 // ^^^ NOTE: DEFAULT EXAMPLE SETUP IS FOR A CHAIN OF TWO x 1/8 SCAN PANELS
 
@@ -172,58 +170,20 @@ void setup()
 
 // Test the pixel mapping - fill the panel pixel by pixel
 void loop() {
-    readSerial2();    
 
-    if (newMessageAvailable) {
-        
-            // dma_display->flipDMABuffer();
-        newMessageAvailable = false;
-        FourScanPanel->setTextColor(currentColor);
-        // Initialize positions for new message
-        if (currentAnimationType == SCROLL_LEFT) {
-            textXPosition = FourScanPanel->width();
-            textYPosition = (FourScanPanel->height() - h) / 2;
-        } else if (currentAnimationType == SCROLL_UP) {
-            textXPosition = (FourScanPanel->width() - w) / 2;
-            textYPosition = FourScanPanel->height();
-        } else if (currentAnimationType == SCROLL_DOWN) {
-            textXPosition = (FourScanPanel->width() - w) / 2;
-            textYPosition = -h;
-        } else if (currentAnimationType == DOWN_BLINK) {
-            textXPosition = (FourScanPanel->width() - w) / 2;
-            textYPosition = -h;
-        } 
+ for (int i = 0; i < FourScanPanel->height(); i++)
+  {
+    for (int j = 0; j < FourScanPanel->width(); j++)
+    {
+      FourScanPanel->drawPixel(j, i, FourScanPanel->color565(255, 0, 0));
+      delay(30);
     }
+  }
 
-    switch (currentAnimationType) {
-        case SCROLL_LEFT:
-            scrollTextLeft();
-            break;
-        case SCROLL_UP:
-            scrollTextUp();
-            break;
-        case SCROLL_DOWN:
-            scrollTextDown();
-            break;
-        case BLINK:
-            blinkText();
-            break;
-        case DOWN_BLINK:
-            downBlinkText();
-            break;
-        case STATIC:
-            displayStaticText();
-            break;
-        case SPECIAL_SCROLL:
-            specialScrollText();
-            break;
-        case STATIC_LARGE:
-            displayLargeText();
-            break;
-        default:
-            break;
-    }
-}
+  delay(2000);
+  dma_display->clearScreen();
+
+} // end loop
 
 void clearScreenBuffer() {
     FourScanPanel->fillScreen(myBLACK);  // Mengisi layar dengan warna hitam pada buffer aktif
