@@ -36,60 +36,30 @@ class CustomPxBasePanel : public VirtualMatrixPanel
 // custom getCoords() method for specific pixel mapping
 inline VirtualCoords CustomPxBasePanel ::getCoords(int16_t x, int16_t y) {
 
-  coords = VirtualMatrixPanel::getCoords(x, y); // call base class method to update coords for chaining approach
+coords = VirtualMatrixPanel::getCoords(x, y); // call base class method to update coords for chaining approach
 
-  if ( coords.x == -1 || coords.y == -1 ) { // Co-ordinates go from 0 to X-1 remember! width() and height() are out of range!
-    return coords;
-  }
+if ( coords.x == -1 || coords.y == -1 ) { // Co-ordinates go from 0 to X-1 remember! width() and height() are out of range!
+return coords;
+}
 
-  uint8_t pxbase = panelResX;  // pixel base
-  // mapper for panels with 32 pixs height  (64x32 or 32x32)
-  if (panelResY == 32)
-  {
-    if ((coords.y & 8) == 0)
-    {
-      coords.x += ((coords.x / pxbase) + 1) * pxbase;    // 1st, 3rd 'block' of 8 rows of pixels
-    }
-    else
-    {
-      coords.x += (coords.x / pxbase) * pxbase;          // 2nd, 4th 'block' of 8 rows of pixels
-    }
-    coords.y = (coords.y >> 4) * 8 + (coords.y & 0b00000111);
-  }
+uint8_t pxbase = panelResX; // pixel base
+ if (panelResY == 16)
+{
+if ((coords.y & 4) != 0)
+{
+// 1. Normal line, from left to right
+coords.x += ((coords.x / pxbase) + 1) * pxbase; // 1st, 3rd 'block' of 4 rows of pixels
+//2. in case the line filled from right to left, use this (and comment 1st)
+//coords.x = ((coords.x / pxbase) + 1) * 2 * pxbase - (coords.x % pxbase) - 1;
+}
+else
+{
+coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 4 rows of pixels
+}
+coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
+}
 
-  // mapper for panels with 16 pixs height  (32x16 1/4)
-  else if (panelResY == 16)
-  {
-    if ((coords.y & 4) == 0)
-    {
-      // 1. Normal line, from left to right
-      coords.x += ((coords.x / pxbase) + 1) * pxbase;     // 1st, 3rd 'block' of 4 rows of pixels
-      //2. in case the line filled from right to left, use this (and comment 1st)
-      //coords.x = ((coords.x / pxbase) + 1) * 2 * pxbase  - (coords.x % pxbase) - 1;
-    }
-    else
-    {
-      coords.x += (coords.x / pxbase) * pxbase;          // 2nd, 4th 'block' of 4 rows of pixels
-    }
-    coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
-  }
-  // mapper for panels with any other heights
-  else {
-    uint8_t half_height = panelResY / 2;
-   
-    if ((coords.y  % half_height ) < half_height/2)
-    {
-     coords.x += (coords.x / pxbase + 1) * pxbase;
-    }
-    else
-    {
-     coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
-     }
-     
-     coords.y = (coords.y / half_height ) * (half_height/2) + (coords.y % (half_height/2));
-
-  }
-  return coords;
+return coords;
 }
 
 // Panel configuration
