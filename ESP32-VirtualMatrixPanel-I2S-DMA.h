@@ -391,7 +391,7 @@ inline VirtualCoords VirtualMatrixPanel::getCoords(int16_t virt_x, int16_t virt_
 
         coords.y = (virt_y >> 4) * 8 + (virt_y & 0b00000111);
     }
-    else if (panel_scan_rate == FOUR_SCAN_16PX_HIGH)
+else if (panel_scan_rate == FOUR_SCAN_16PX_HIGH)
     {
         if ((virt_y & 4) == 0)
         {
@@ -403,11 +403,7 @@ inline VirtualCoords VirtualMatrixPanel::getCoords(int16_t virt_x, int16_t virt_
         }
 
         coords.y = (virt_y >> 3) * 4 + (virt_y & 0b00000011);
-        else
-        {
-            coords.y = ((virt_y - 32) >> 4) * 8 + (virt_y & 0b00000111);
-            coords.x += 256;
-        }
+    
     }
 
     return coords;
@@ -438,11 +434,11 @@ inline VirtualCoords EightPxBasePanel ::getCoords(int16_t x, int16_t y) {
 uint8_t pxbase =8;   // pixel base
  if ((coords.y & 4) == 0)
        {
-            coords.x = (coords.x / pxbase)*2*pxbase   + 7 - (coords.x & 0x7); // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+            coords.x = (coords.x / pxbase)*2*pxbase; // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
         }
         else
         {
-           coords.x += ((coords.x / pxbase) + 1) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+           coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
         }
 
 
