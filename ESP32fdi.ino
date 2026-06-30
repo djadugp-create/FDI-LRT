@@ -22,39 +22,7 @@
 #include "ESP32-VirtualMatrixPanel-I2S-DMA.h"
 
 // Define custom class derived from VirtualMatrixPanel
-class CustomPxBasePanel : public VirtualMatrixPanel
-{
-  public:
-    using VirtualMatrixPanel::VirtualMatrixPanel; // inherit VirtualMatrixPanel's constructor(s)
 
-  protected:
-
-    VirtualCoords getCoords(int16_t x, int16_t y);  // custom getCoords() method for specific pixel mapping
-
-};
-
-// custom getCoords() method for specific pixel mapping
-inline VirtualCoords CustomPxBasePanel ::getCoords(int16_t x, int16_t y){
-
-  coords = VirtualMatrixPanel::getCoords(x, y); // first call base class method to update coords for chaining approach
-
-  if ( coords.x == -1 || coords.y == -1 ) { // Co-ordinates go from 0 to X-1 remember! width() and height() are out of range!
-    return coords;
-  }
-
-uint8_t pxbase =4;   // pixel base
-if  (((coords.y & 4) == 0) ^ ((coords.x/pxbase) % 2))
-    {
-   coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
-   }
-else
-  {
-   coords.x += ((coords.x / pxbase) + 1) * pxbase; // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
-   }
-
-    coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
-  return coords;
-}
 
 // Panel configuration
 #define PANEL_RES_X 32 // Number of pixels wide of each INDIVIDUAL panel module. 
