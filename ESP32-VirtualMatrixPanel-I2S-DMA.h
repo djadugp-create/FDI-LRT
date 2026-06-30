@@ -427,8 +427,8 @@ inline VirtualCoords VirtualMatrixPanel::getCoords(int16_t virt_x, int16_t virt_
 }
 
 
-///condition kereta KCI
-class EightPxBasePanel : public VirtualMatrixPanel
+///condition baru
+class CustomPxBasePanel : public VirtualMatrixPanel
 {
   public:
     using VirtualMatrixPanel::VirtualMatrixPanel; // inherit VirtualMatrixPanel's constructor(s)
@@ -439,8 +439,8 @@ class EightPxBasePanel : public VirtualMatrixPanel
 
 };
 
-// define custom getCoords() method for specific pixel mapping
-inline VirtualCoords EightPxBasePanel ::getCoords(int16_t x, int16_t y) {
+// custom getCoords() method for specific pixel mapping
+inline VirtualCoords CustomPxBasePanel ::getCoords(int16_t x, int16_t y){
 
   coords = VirtualMatrixPanel::getCoords(x, y); // first call base class method to update coords for chaining approach
 
@@ -448,18 +448,17 @@ inline VirtualCoords EightPxBasePanel ::getCoords(int16_t x, int16_t y) {
     return coords;
   }
 
-uint8_t pxbase =8;   // pixel base
- if ((coords.y & 4) == 0)
-       {
-            coords.x = (coords.x / pxbase)*2*pxbase   + 7 - (coords.x & 0x7); // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
-        }
-        else
-        {
-           coords.x += ((coords.x / pxbase) + 1) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
-        }
+uint8_t pxbase =4;   // pixel base
+if  (((coords.y & 4) == 0) ^ ((coords.x/pxbase) % 2))
+    {
+   coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+   }
+else
+  {
+   coords.x += ((coords.x / pxbase) + 1) * pxbase; // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+   }
 
-
-  coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
+    coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
   return coords;
 }
 
