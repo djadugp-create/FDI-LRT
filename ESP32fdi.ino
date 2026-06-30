@@ -34,32 +34,26 @@ class CustomPxBasePanel : public VirtualMatrixPanel
 };
 
 // custom getCoords() method for specific pixel mapping
-inline VirtualCoords CustomPxBasePanel ::getCoords(int16_t x, int16_t y) {
+inline VirtualCoords CustomPxBasePanel ::getCoords(int16_t x, int16_t y){
 
-coords = VirtualMatrixPanel::getCoords(x, y); // call base class method to update coords for chaining approach
+  coords = VirtualMatrixPanel::getCoords(x, y); // first call base class method to update coords for chaining approach
 
-if ( coords.x == -1 || coords.y == -1 ) { // Co-ordinates go from 0 to X-1 remember! width() and height() are out of range!
-return coords;
-}
+  if ( coords.x == -1 || coords.y == -1 ) { // Co-ordinates go from 0 to X-1 remember! width() and height() are out of range!
+    return coords;
+  }
 
-uint8_t pxbase = panelResX; // pixel base
- if (panelResY == 16)
-{
-if ((coords.y & 4) != 0)
-{
-// 1. Normal line, from left to right
-coords.x += ((coords.x / pxbase) + 1) * pxbase; // 1st, 3rd 'block' of 4 rows of pixels
-//2. in case the line filled from right to left, use this (and comment 1st)
-//coords.x = ((coords.x / pxbase) + 1) * 2 * pxbase - (coords.x % pxbase) - 1;
-}
+uint8_t pxbase =4;   // pixel base
+if  (((coords.y & 4) == 0) ^ ((coords.x/pxbase) % 2))
+    {
+   coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+   }
 else
-{
-coords.x += (coords.x / pxbase) * pxbase; // 2nd, 4th 'block' of 4 rows of pixels
-}
-coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
-}
+  {
+   coords.x += ((coords.x / pxbase) + 1) * pxbase; // 1st, 3rd 'block' of 8 rows of pixels, offset by panel width in DMA buffer
+   }
 
-return coords;
+    coords.y = (coords.y >> 3) * 4 + (coords.y & 0b00000011);
+  return coords;
 }
 
 // Panel configuration
@@ -97,7 +91,7 @@ void setup()
   mxconfig.clkphase = false; 
   
   // Uncomment this to use a TYPE595 decoder like DP32020/SM5368/TC75xx
-  //mxconfig.line_decoder = HUB75_I2S_CFG::TYPE595;
+// mxconfig.line_decoder = HUB75_I2S_CFG::TYPE595;
 
   // OK, now we can create our matrix object
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
